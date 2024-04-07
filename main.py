@@ -1,11 +1,9 @@
 import streamlit as st
-import joblib
 import numpy as np
 import pandas as pd
 
 
-st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="🎷")
-
+st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
 
 
 @st.cache_data
@@ -21,8 +19,15 @@ def get_data():
     return relevant_cols
 
 @st.cache_data
-def get_cosine_sim():
-    cosine_sim = joblib.load("cosine_sim.pkl")
+def get_cosine_sim(dataframe):
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    tfidf = TfidfVectorizer(stop_words='english')
+    dataframe['tags'] = dataframe['tags'].fillna('')
+    tfidf_matrix = tfidf.fit_transform(dataframe['tags'])
+    print(tfidf_matrix.shape)
+    print(dataframe['title'].shape)
+    cosine_sim = cosine_similarity(tfidf_matrix)
     return cosine_sim
 
 
@@ -53,6 +58,6 @@ input_from_user = st.text_input("Lütfen öneri almak istediğiniz içeriği gir
 # Öneri sisteminin çalıştırılması
 
 if input_from_user:
-    recommendations = content_based_recommender(input_from_user, get_cosine_sim(), get_data())
+    recommendations = content_based_recommender(input_from_user, get_cosine_sim(get_data()), get_data())
     st.write("Önerilen oyunlar:")
     st.write(recommendations)
