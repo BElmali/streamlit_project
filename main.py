@@ -6,18 +6,18 @@ import requests
 
 st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
 
-@st.cache_resource
+
 def get_data():
     dataframe = pd.read_csv('data.csv')
     return dataframe
 
 
-@st.cache_data
+
 def get_pipeline():
     pipeline = joblib.load('knn_game_recommender_pipeline.pkl')
     return pipeline
 
-@st.cache_data
+
 def fetch_image_as_bytes(steam_id: int):
     url = f'https://cdn.akamai.steamstatic.com/steam/apps/{steam_id}/header.jpg'
     response = requests.get(url)
