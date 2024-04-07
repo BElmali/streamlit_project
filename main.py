@@ -4,10 +4,6 @@ import pandas as pd
 
 
 st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
-<<<<<<< HEAD
-
-=======
->>>>>>> bc8acc49f78736052f2e2117db4674c622c6485c
 
 #@st.cache_data
 def get_data():
@@ -16,16 +12,12 @@ def get_data():
     metadata['tags'] = metadata['tags'].apply(lambda x: np.nan if x == '' else x)
     metadata.dropna(inplace=True)
     games = pd.read_csv('games.csv')
-    content_recom = pd.merge(games, metadata, on='app_id')
+    filtered_games = games[(games['positive_ratio'] >= 50) & (games['user_reviews'] >= 30)]
+    content_recom = pd.merge(filtered_games, metadata, on='app_id')
     relevant_cols = content_recom[['app_id', 'title', 'tags']]
     relevant_cols = pd.DataFrame(relevant_cols)
     return relevant_cols
 
-<<<<<<< HEAD
-#@st.cache_data
-=======
-@st.cache_data
->>>>>>> bc8acc49f78736052f2e2117db4674c622c6485c
 def get_cosine_sim(dataframe):
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
@@ -42,7 +34,6 @@ def get_cosine_sim(dataframe):
 st.title(":rainbow[Steam Game Recommend]")
 
 
-
 def content_based_recommender(title, cosine_sim, dataframe):
     # index'leri oluşturma
     indices = pd.Series(dataframe.index, index=dataframe['title'])
@@ -52,7 +43,7 @@ def content_based_recommender(title, cosine_sim, dataframe):
     # Oyun ID'sine karşılık gelen benzerlik skorlarını alın
     similarity_scores = pd.DataFrame(cosine_sim[game_id], columns=["score"])
     # Kendisi hariç ilk 10 oyunu getirin
-    similar_games_indices = similarity_scores.sort_values("score", ascending=False)[1:11].index
+    similar_games_indices = similarity_scores.sort_values("score", ascending=False)[1:4].index
 
     # Önerilen oyunların isimlerini döndürün
     return dataframe.iloc[similar_games_indices]['title']
