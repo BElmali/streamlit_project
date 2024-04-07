@@ -6,7 +6,7 @@ import requests
 
 st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
 
-@st.cache_data
+@st.cache_resource
 def get_data():
     dataframe = pd.read_csv('data.csv')
     return dataframe
