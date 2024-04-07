@@ -72,13 +72,12 @@ RPG = col_features2.checkbox("RPG", value=False)
 Story_Rich = col_features2.checkbox("Story Rich", value=False)
 Puzzle = col_features2.checkbox("Puzzle", value=False)
 Multiplayer = col_features2.checkbox("Multiplayer", value=False)
-Sports = col_features2.checkbox("Sports", value=False)
 Arcade = col_features2.checkbox("Arcade", value=False)
 Adventure = col_features2.checkbox("Adventure",value=False)
 
 features = np.array([int(Indie), int(Singleplayer), int(Casual), int(Action),
                      int(Simulation), int(Atmospheric), int(Strategy),
-                     int(RPG),int(Puzzle), int(Multiplayer),int(Sports),
+                     int(RPG),int(Puzzle), int(Multiplayer),
                      int(Arcade),int(Adventure),
                      int(Story_Rich)]).reshape(1, -1)
 
