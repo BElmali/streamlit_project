@@ -1,10 +1,9 @@
 import streamlit as st
-import joblib
 import numpy as np
 import pandas as pd
 
 
-st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="🎷")
+st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
 
 
 
