@@ -4,4 +4,4 @@ streamlit
 joblib
 requests
 random
-matplotlib
+matplotlib.pyplot
