@@ -5,7 +5,8 @@ import pandas as pd
 
 st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
 
-#@st.cache_data
+
+@st.cache_data
 def get_data():
     metadata = pd.read_json('games_metadata.json', lines=True)
     metadata['tags'] = metadata['tags'].apply(lambda x: ', '.join(x))
@@ -13,11 +14,13 @@ def get_data():
     metadata.dropna(inplace=True)
     games = pd.read_csv('games.csv')
     filtered_games = games[(games['positive_ratio'] >= 50) & (games['user_reviews'] >= 30)]
+
     content_recom = pd.merge(filtered_games, metadata, on='app_id')
     relevant_cols = content_recom[['app_id', 'title', 'tags']]
     relevant_cols = pd.DataFrame(relevant_cols)
     return relevant_cols
 
+@st.cache_data
 def get_cosine_sim(dataframe):
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
@@ -32,6 +35,7 @@ def get_cosine_sim(dataframe):
 
 
 st.title(":rainbow[Steam Game Recommend]")
+
 
 
 def content_based_recommender(title, cosine_sim, dataframe):
