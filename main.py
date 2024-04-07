@@ -3,41 +3,24 @@ import pandas as pd
 import joblib
 import numpy as np
 import requests
-<<<<<<< Updated upstream
-
-st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
-
-@st.cache_resource
-=======
 import random
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import seaborn as sns
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.neighbors import NearestNeighbors
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', 2500)
-pd.set_option('display.expand_frame_repr', False)
-st.set_page_config(layout="wide", page_title="Steam Game Recommend", page_icon=":dark_sunglasses:")
-dark_colors = ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', '#8C564B', '#E377C2', '#7F7F7F', '#BCBD22', '#17BECF']
-mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=dark_colors)
 
->>>>>>> Stashed changes
+st.set_page_config(layout="wide", page_title="Steam Game Recommend", page_icon=":dark_sunglasses:")
+
+@st.cache(allow_output_mutation=True)
 def get_data():
     dataframe = pd.read_csv('data.csv')
     dataframe_games = pd.read_csv('games.csv')
     return dataframe, dataframe_games
 
 
-@st.cache_data
+@st.cache(allow_output_mutation=True)
 def get_pipeline():
     pipeline = joblib.load('knn_game_recommender_pipeline.pkl')
     return pipeline
 
-@st.cache_data
+@st.cache(allow_output_mutation=True)
 def fetch_image_as_bytes(steam_id: int):
     url = f'https://cdn.akamai.steamstatic.com/steam/apps/{steam_id}/header.jpg'
     response = requests.get(url)
@@ -160,31 +143,23 @@ with col2:
 
 with col3:
     col3.image("logo.jpg")
-    # Veri çerçevesi
     data = df_games[['positive_ratio', 'user_reviews']]
-    # Positive Ratio değerlerine göre gruplayıp, User Reviews'ın ortalamasını hesaplayın
     avg_user_reviews = data.groupby('positive_ratio')['user_reviews'].mean()
 
-    # Grafik başlığı
-    st.write("## Positive Ratio'ya Göre Ortalama User Reviews")
 
-    # Çizgi grafiği oluşturma
+    st.write("## Positive Ratio'ya Göre Ortalama User Reviews")
     plt.plot(avg_user_reviews.index, avg_user_reviews.values, marker='o', color='red')
     plt.xlabel('Positive Ratio')
     plt.ylabel('Ortalama User Reviews')
     st.pyplot()
 
 
-    # Platformların sayısal dağılımı
     st.write("## Platform Dağılımı")
     platform_counts = df_games[['win', 'mac', 'linux']].apply(pd.value_counts).T
-
-    # Grafik oluşturma
     platform_counts.plot(kind='bar')
     plt.xlabel('Platform')
     plt.ylabel('Oyun Sayısı')
 
-    # Grafik üzerine sayıları yazma
     for i in range(len(platform_counts)):
         total_height = 0
         for j in range(len(platform_counts.columns)):
@@ -194,11 +169,7 @@ with col3:
 
     st.pyplot()
 
-    # "win", "mac" ve "linux" sütunlarının tüm değerlerinin True olduğu satırları filtreleme
+
     all_platforms = df_games[(df_games['win'] == True) & (df_games['mac'] == True) & (df_games['linux'] == True)]
-
-    # "win", "mac" ve "linux" sütunlarının tüm değerlerinin True olduğu oyun sayısı
     total_count = len(all_platforms)
-
-    # Grafik başlığı
     st.write(f"Hem Windows Hem Mac Hem Linux Destekleyen Oyun Sayısı:**{total_count}**")
