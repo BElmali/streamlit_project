@@ -4,7 +4,10 @@ import pandas as pd
 
 
 st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
+<<<<<<< HEAD
 
+=======
+>>>>>>> bc8acc49f78736052f2e2117db4674c622c6485c
 
 #@st.cache_data
 def get_data():
@@ -18,7 +21,11 @@ def get_data():
     relevant_cols = pd.DataFrame(relevant_cols)
     return relevant_cols
 
+<<<<<<< HEAD
 #@st.cache_data
+=======
+@st.cache_data
+>>>>>>> bc8acc49f78736052f2e2117db4674c622c6485c
 def get_cosine_sim(dataframe):
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
