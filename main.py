@@ -6,7 +6,6 @@ import pandas as pd
 st.set_page_config(layout = "wide", page_title="Steam Game Recommend", page_icon="")
 
 
-@st.cache_data
 def get_data():
     metadata = pd.read_json('games_metadata.json', lines=True)
     metadata['tags'] = metadata['tags'].apply(lambda x: ', '.join(x))
@@ -20,7 +19,7 @@ def get_data():
     relevant_cols = pd.DataFrame(relevant_cols)
     return relevant_cols
 
-@st.cache_data
+
 def get_cosine_sim(dataframe):
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
