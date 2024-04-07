@@ -2,3 +2,6 @@ altair
 pandas
 streamlit
 joblib
+requests
+random
+matplotlib
