@@ -8,19 +8,18 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide", page_title="Steam Game Recommend", page_icon=":dark_sunglasses:")
 
-@st.cache(allow_output_mutation=True)
+
 def get_data():
     dataframe = pd.read_csv('data.csv')
     dataframe_games = pd.read_csv('games.csv')
     return dataframe, dataframe_games
 
 
-@st.cache(allow_output_mutation=True)
 def get_pipeline():
     pipeline = joblib.load('knn_game_recommender_pipeline.pkl')
     return pipeline
 
-@st.cache(allow_output_mutation=True)
+
 def fetch_image_as_bytes(steam_id: int):
     url = f'https://cdn.akamai.steamstatic.com/steam/apps/{steam_id}/header.jpg'
     response = requests.get(url)
@@ -28,7 +27,8 @@ def fetch_image_as_bytes(steam_id: int):
 
 
 st.title(":rainbow[Steam Game Recommend]")
-main_tab, mainrecom_tab,random_tab, recommendation_tab = st.tabs(["Ana Sayfa","Öneri Sistemi", "Rastgele Oyunlar", "Türlere göre öneri sistemi"])
+main_tab, mainrecom_tab, random_tab, recommendation_tab = st.tabs(["Ana Sayfa", "Öneri Sistemi", "Rastgele Oyunlar",
+                                                                   "Türlere göre öneri sistemi"])
 
 
 # Rastgele
@@ -42,14 +42,12 @@ empty_col1, empty_col2, empty_col3 = random_tab.columns([4,3,2])
 if empty_col2.button("Rastgele Oyun Öner"):
     random_game = df_games.loc[(df_games['positive_ratio']>=85) & (df_games['user_reviews']>1500)]
     random_game = df[~df["title"].isna()].sample(5)
-
     for i, col in enumerate(columns):
-
         col.image(fetch_image_as_bytes(random_game.iloc[i]['app_id']))
         col.write(f"**{random_game.iloc[i]['title']}**")
 empty_col1.write("Pozitif inceleme oranı en az %85 ve kullanıcı incelemesi 1500'den fazla olan oyunlar baz alınmıştır.")
-# Öneri Sistemi
 
+# Öneri Sistemi
 pipeline = get_pipeline()
 drop_columns=['2D', '3D',  'Anime',  'Co-op', 'Colorful',  'Comedy',
        'Cute', 'Difficult', 'Early Access',
@@ -85,7 +83,8 @@ features = np.array([int(Indie), int(Singleplayer), int(Casual), int(Action),
                      int(Story_Rich)]).reshape(1, -1)
 
 if col_features2.button("Öneri Getir!"):
-    distances, indices = pipeline.named_steps['knn'].kneighbors(pipeline.named_steps['scaler'].transform(features), n_neighbors=20)
+    distances, indices = pipeline.named_steps['knn'].kneighbors(pipeline.named_steps['scaler'].transform(features),
+                                                                n_neighbors=20)
     recommended_index = random.choice(indices[0][1:])
     recommended_game = df.iloc[recommended_index]
     col_recommendation.image(fetch_image_as_bytes(recommended_game['app_id']))
@@ -119,7 +118,7 @@ col1, col2, col3 =main_tab.columns(3,gap="small")
 with col1:
     st.title("Steam Oyunları Veri Seti")
     df_filtered = df.drop(columns=["title", "app_id", "tags"])
-    df_games
+    print(df_games)
 
     st.write("## Yayın Tarihine Göre Oyun Sayısı")
     df_games['date_release'] = pd.to_datetime(df_games['date_release'])
@@ -128,7 +127,8 @@ with col1:
 
 with col2:
     # Kullanıcı incelemelerine göre gruplandırma ve başlıkları sıralama
-    grouped_df = df_games.groupby('user_reviews').apply(lambda x: x.sort_values(by='user_reviews', ascending=False)).tail(10)
+    grouped_df = df_games.groupby('user_reviews').apply(lambda x: x.sort_values(by='user_reviews',
+                                                                                ascending=False)).tail(10)
     graph_data = grouped_df[['title', 'rating']].sort_index(ascending=False)
     st.write("## En çok incelenen 10 Oyun")
     st.write(graph_data)
@@ -151,6 +151,7 @@ with col3:
     plt.plot(avg_user_reviews.index, avg_user_reviews.values, marker='o', color='red')
     plt.xlabel('Positive Ratio')
     plt.ylabel('Ortalama User Reviews')
+    st.set_option('deprecation.showPyplotGlobalUse', False)
     st.pyplot()
 
 
@@ -166,7 +167,7 @@ with col3:
             count = platform_counts.iloc[i, j]
             plt.text(i, total_height + count / 2, str(int(count)), ha='center', va='center', color='black')
             total_height += count
-
+    st.set_option('deprecation.showPyplotGlobalUse', False)
     st.pyplot()
 
 
