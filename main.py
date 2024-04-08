@@ -12,7 +12,9 @@ st.set_page_config(layout="wide", page_title="Steam Game Recommend", page_icon="
 def get_data():
     dataframe = pd.read_csv('data.csv')
     dataframe_games = pd.read_csv('games.csv')
-    return dataframe, dataframe_games
+    nodlcgames = dataframe_games['title'].str.contains('DLC', case=False)
+    games = dataframe_games[~nodlcgames]
+    return dataframe, games
 
 
 def get_pipeline():

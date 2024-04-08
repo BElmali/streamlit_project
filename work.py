@@ -13,12 +13,18 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 2500)
 pd.set_option('display.expand_frame_repr', False)
 
+
+
 metadata = pd.read_json('games_metadata.json', lines=True)
 metadata['tags'] = metadata['tags'].apply(lambda x: ', '.join(x))
 metadata['tags'] = metadata['tags'].apply(lambda x: np.nan if x == '' else x)
 metadata.dropna(inplace=True)
 games = pd.read_csv('games.csv')
+nodlcgames = games['title'].str.contains('DLC', case=False)
+games = games[~nodlcgames]
+
 filtered_games = games[(games['positive_ratio'] >= 50) & (games['user_reviews'] >= 30)]
+
 content_recom = pd.merge(filtered_games, metadata, on='app_id')
 relevant_cols = content_recom[['app_id', 'title', 'tags']]
 
@@ -32,6 +38,7 @@ for tag in all_tags:
 
 popular_tags = {tag: count for tag, count in tag_counts.items() if count > 2000}
 sorted_data = sorted(popular_tags.items(), key=lambda x: x[1], reverse=True)
+
 for item in sorted_data[:15]:
     print(item)
 
@@ -40,7 +47,6 @@ for item in sorted_data[:15]:
 for tag in popular_tags:
     relevant_cols[tag] = relevant_cols['tags'].str.contains(tag).astype(int)
 relevant_cols.columns = relevant_cols.columns.str.strip()
-
 relevant_cols.loc[:, ~relevant_cols.columns.isin(['app_id','title', 'description', 'tags']) & ~relevant_cols.columns.isin(popular_tags)] = 0
 relevant_cols.info()
 relevant_cols.isnull().any()
