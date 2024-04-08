@@ -5,91 +5,91 @@ import datetime as dt
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', 500)
-pd.set_option('display.expand_frame_repr', False)
-"""users = pd.read_csv('users.csv')
-recom = pd.read_csv('recommendations.csv')
-games.head()
-games.shape
-users.head()
-users.shape
-recom.head()
-recom.shape"""
-#EDA
-metadata = pd.read_json('games_metadata.json', lines=True)
+from sklearn.neighbors import NearestNeighbors
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 2500)
+pd.set_option('display.expand_frame_repr', False)
+
+metadata = pd.read_json('games_metadata.json', lines=True)
 metadata['tags'] = metadata['tags'].apply(lambda x: ', '.join(x))
 metadata['tags'] = metadata['tags'].apply(lambda x: np.nan if x == '' else x)
 metadata.dropna(inplace=True)
-metadata.isnull().sum()
-#metadata = metadata.set_index('app_id')
-
 games = pd.read_csv('games.csv')
-#userlerin hangi oyunlara yorum yaptığı
-#recom = pd.read_csv('Miull_proje/recommendations.csv')
-#recom.groupby(['app_id', 'user_id']).agg(['sum'])
+filtered_games = games[(games['positive_ratio'] >= 50) & (games['user_reviews'] >= 30)]
+content_recom = pd.merge(filtered_games, metadata, on='app_id')
+relevant_cols = content_recom[['app_id', 'title', 'tags']]
 
-#recom.groupby('app_id')['user_id'].nunique()
+all_tags = ','.join(relevant_cols['tags']).split(',')
+tag_counts = {}
+for tag in all_tags:
+    if tag in tag_counts:
+        tag_counts[tag] += 1
+    else:
+        tag_counts[tag] = 1
 
-#recom.loc[recom["app_id"]==10]
+popular_tags = {tag: count for tag, count in tag_counts.items() if count > 2000}
+sorted_data = sorted(popular_tags.items(), key=lambda x: x[1], reverse=True)
+for item in sorted_data[:15]:
+    print(item)
 
-content_recom = pd.merge(games, metadata, on='app_id')
-relevant_cols = content_recom[['app_id',"date_release", 'title', 'positive_ratio', 'user_reviews', 'tags']]
-relevant_cols = pd.DataFrame(relevant_cols)
-#relevant_cols = relevant_cols.set_index('app_id')
 
-relevant_cols.isnull().sum()
-# GameLifetime
-#"""relevant_cols['date_release'] = pd.to_datetime(relevant_cols['date_release'])
-#today_date = pd.Timestamp(dt.datetime.today().date())
-#relevant_cols['Game_lifetime'] = (today_date - relevant_cols['date_release']).dt.days"""
-relevant_cols = relevant_cols.drop(columns=['date_release'])
-#relevant_cols = relevant_cols.loc[relevant_cols['positive_ratio']>50]
-#relevant_cols = relevant_cols.loc[relevant_cols['user_reviews']>=30]
-#relevant_cols['tags'] = relevant_cols['tags'].apply(lambda x: ', '.join(x))
-#relevant_cols['tags'] = relevant_cols['tags'].apply(lambda x: np.nan if x == '' else x)
 
-relevant_cols.isnull().sum()
-#relevant_cols.dropna(inplace=True)
+for tag in popular_tags:
+    relevant_cols[tag] = relevant_cols['tags'].str.contains(tag).astype(int)
+relevant_cols.columns = relevant_cols.columns.str.strip()
+
+relevant_cols.loc[:, ~relevant_cols.columns.isin(['app_id','title', 'description', 'tags']) & ~relevant_cols.columns.isin(popular_tags)] = 0
 relevant_cols.info()
+relevant_cols.isnull().any()
+
+relevant_cols = relevant_cols.loc[:, ~relevant_cols.columns.duplicated()]
+
+drop_columns=['2D', '3D',  'Anime',  'Co-op', 'Colorful',  'Comedy',
+       'Cute', 'Difficult', 'Early Access',
+       'Exploration',  'Family Friendly', 'Fantasy',
+       'Female Protagonist', 'First-Person', 'Free to Play', 'Funny',
+       'Gore', 'Great Soundtrack', 'Horror',
+        'Open World',  'Pixel Graphics',
+       'Platformer',
+       'Relaxing', 'Retro',
+       'Sci-fi', 'Shooter',
+       'Third Person',  'Violent',
+       'app_id', 'tags', 'title']
+features=relevant_cols.drop(columns=drop_columns, axis=1)
+features.info()
+
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('knn', NearestNeighbors(n_neighbors=5))
+])
+
+pipeline.fit(features)
 
 
-#contentbased
-def calculate_cosine_sim(dataframe):
-    tfidf = TfidfVectorizer(stop_words='english')
-    dataframe['tags'] = dataframe['tags'].fillna('')
-    tfidf_matrix = tfidf.fit_transform(dataframe['tags'])
-    print(tfidf_matrix.shape)
-    print(dataframe['title'].shape)
-    cosine_sim = cosine_similarity(tfidf_matrix)
-    return cosine_sim
+def get_recommendations(app_id, data, model_pipeline):
+    song_index = data.loc[data['app_id'] == app_id].index[0]
 
+    song_features = features.iloc[[song_index]]
 
-def content_based_recommender(title, cosine_sim, dataframe):
-    # index'leri oluşturma
-    indices = pd.Series(dataframe.index, index=dataframe['title'])
-    indices = indices[~indices.index.duplicated(keep='last')]
-    # Girilen oyunun ID'sini alın
-    game_id = indices[title]
-    # Oyun ID'sine karşılık gelen benzerlik skorlarını alın
-    similarity_scores = pd.DataFrame(cosine_sim[game_id], columns=["score"])
-    # Kendisi hariç ilk 10 oyunu getirin
-    similar_games_indices = similarity_scores.sort_values("score", ascending=False)[1:11].index
+    _, indices = model_pipeline.named_steps['knn'].kneighbors(
+        model_pipeline.named_steps['scaler'].transform(song_features), n_neighbors=2)
 
-    # Önerilen oyunların isimlerini döndürün
-    return dataframe.iloc[similar_games_indices]['title']
-# Öneri almak için oyun ismini kullanın
-cosine_sim = calculate_cosine_sim(relevant_cols)
-input_from_user = input("Lütfen öneri almak istediğiniz içeriği girin: ")
+    recommended_index = indices[0][1]
 
-recommendations=content_based_recommender(input_from_user, cosine_sim, relevant_cols)
-print("Önerilen oyunlar:")
-print(recommendations)
+    return data.iloc[recommended_index]['app_id']
 
-import joblib
+relevant_cols.to_csv('data.csv', index=False)
 
-# Öneri fonksiyonunu joblib ile export edin
-joblib.dump(content_based_recommender, "content_based_recommender.pkl")
-joblib.dump(cosine_sim, "cosine_sim.pkl")
-joblib.dump(relevant_cols, "relevant_cols.pkl")
+app_id = relevant_cols.sample(1)['app_id'].values[0]
+recommendations = get_recommendations(app_id, relevant_cols, pipeline)
+
+game_name = relevant_cols.loc[relevant_cols['app_id'] == app_id, ['title']].values[0]
+recom_game= relevant_cols.loc[relevant_cols['app_id'] == recommendations, ['title']].values[0]
+
+print(f"Based on the song '{game_name}' by {recom_game}")
+
+joblib.dump(pipeline, 'knn_game_recommender_pipeline.pkl')
+
