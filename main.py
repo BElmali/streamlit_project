@@ -118,7 +118,7 @@ col1, col2, col3 =main_tab.columns(3,gap="small")
 with col1:
     st.title("Steam Oyunları Veri Seti")
     df_filtered = df.drop(columns=["title", "app_id", "tags"])
-    print(df_games)
+    df_games
 
     st.write("## Yayın Tarihine Göre Oyun Sayısı")
     df_games['date_release'] = pd.to_datetime(df_games['date_release'])
