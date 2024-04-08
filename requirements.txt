@@ -3,4 +3,4 @@ pandas
 streamlit
 joblib
 requests
-matplotlib.pyplot
+matplotlib
