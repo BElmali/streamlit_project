@@ -41,7 +41,7 @@ empty_col1, empty_col2, empty_col3 = random_tab.columns([4,3,2])
 
 if empty_col2.button("Rastgele Oyun Öner"):
     random_game = df_games.loc[(df_games['positive_ratio']>=85) & (df_games['user_reviews']>1500)]
-    random_game = df[~df["title"].isna()].sample(5)
+    random_game = random_game[~random_game["title"].isna()].sample(5)
     for i, col in enumerate(columns):
         col.image(fetch_image_as_bytes(random_game.iloc[i]['app_id']))
         col.write(f"**{random_game.iloc[i]['title']}**")
