@@ -12,9 +12,8 @@ st.set_page_config(layout="wide", page_title="Steam Game Recommend", page_icon="
 def get_data():
     dataframe = pd.read_csv('data.csv')
     dataframe_games = pd.read_csv('games.csv')
-    nodlcgames = dataframe_games['title'].str.contains('DLC', case=False)
-    games = dataframe_games[~nodlcgames]
-    return dataframe, games
+    return dataframe, dataframe_games
+
 
 
 def get_pipeline():
@@ -36,6 +35,8 @@ main_tab, mainrecom_tab, random_tab, recommendation_tab = st.tabs(["Ana Sayfa", 
 # Rastgele
 
 df,df_games = get_data()
+nodlcgames = df_games['title'].str.contains('DLC', case=False)
+df_games = df_games[~nodlcgames]
 
 col1, col2, col3, col4, col5 = random_tab.columns(5, gap="small")
 columns = [col1, col2, col3, col4, col5]
